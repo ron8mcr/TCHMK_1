@@ -74,9 +74,9 @@ void noArguments()
 			cout << "Division by zero" << endl;
 	}
 	// непонятно, по какому модулю возводить в степень, так что лучше закомментировать это
-	cout << "A ^ B = " << a << " ^ " << b << " = " << (a ^ b) << endl;
+	//cout << "A ^ B = " << a << " ^ " << b << " = " << (a ^ b) << endl;
 
-	if (!a.getFromTextFile("input.txt"))
+	/*if (!a.getFromTextFile("input.txt"))
 	cout << "Reading from text file failed" << endl;
 
 	a *= b;
@@ -90,7 +90,7 @@ void noArguments()
 	a++;
 
 	if (!a.saveToTextFile("output.txt"))
-	cout << "Saving to text file failed" << endl;
+	cout << "Saving to text file failed" << endl;*/
 
 	cout << "That's all. Press Enter... ";
 	getchar();
@@ -163,16 +163,20 @@ bool getFromFiles(char* fileA, char* fileB, bool binary, bigInt& A, bigInt& B)
 	}
 	else
 	{
+		cout << "getting A started... ";
 		if (!A.getFromTextFile(fileA))
 		{
 			cout << "Can't get number from " << fileA << endl;
 			return false;
 		}
+		cout << "finished" << endl;
+		cout << "getting B started... ";
 		if (!B.getFromTextFile(fileB))
 		{
 			cout << "Can't get number from " << fileB << endl;
 			return false;
 		}
+		cout << "finished" << endl;
 	}
 
 	return true;
@@ -235,11 +239,13 @@ bool saveRes(char* fileRes, bool binary, bigInt res)
 	}
 	else
 	{
+		cout << "Saving result started...";
 		if (!res.saveToTextFile(fileRes))
 		{
 			cout << "Can't save result to " << fileRes << endl;
 			return false;
 		}
+		cout << "finished" << endl;
 	}
 	return true;
 }

@@ -11,7 +11,8 @@ bigInt::bigInt()
 }
 
 bigInt::bigInt(const char* string)
-{
+{// конструктор из строки, в которой записано число в 10-ричной форме
+
 	// numberInBase10 - число в 10-ричной системе счисления
 	bigInt numberInBase10;
 	numberInBase10._size = strlen(string);
@@ -46,8 +47,7 @@ bigInt::bigInt(const char* string)
 	for (int i = 0; i < numberInBase10._size; i++)
 	{
 		// pow10 = 10^i
-		bigInt digitI;
-		digitI = numberInBase10[i];
+		bigInt digitI = numberInBase10[i];
 		res = res + digitI * pow10;
 		pow10 = pow10 * b10;
 	}
@@ -87,40 +87,35 @@ bigInt::~bigInt()
 	_digits = NULL;
 }
 
+
 char* bigInt::getString()
-{
+{// возвращает строку, в которой записано число в 10-ричной системе счисления
+
 	bigInt numberInBase10; // здесь будет храниться число в 10-ричной СС для вывода
-	numberInBase10._setSize(1000);
-	numberInBase10._size = 0;
-	bigInt bigInt10 = 10;
+	numberInBase10._setSize(MAX_10_LEN);  // здесь запряталось ограничение на максимальную размерность 10-ричного числа
+	numberInBase10._size = 1;
+	bigInt thisNumber = *this;
+	thisNumber._sign = 0;
 
-	bigInt number = *this;
-	number._sign = 0;
-
-	while (number >= bigInt10)
+	while (thisNumber > (long long int) 0)
 	{
-		numberInBase10._size++;
 		bigInt remainder;
-		number = _divividing(number, bigInt10, remainder);
-		// если точно знать, что в СС BASE остаток от деления на 10 состоит из одной цифры
-		// (то есть если BASE >= 10), то следующие строки можно упростить до
-		// numberInBase10[numberInBase10._size - 1] = remainder[0];
-		int pwd = 1;
+		thisNumber = _divividing(thisNumber, 10, remainder);
+		// раскомментровать следующие строки, если BASE < 10		
+		/*int pwd = 1;
 		for (int i = 0; i < remainder._size; i++)
 		{
 			numberInBase10[numberInBase10._size - 1] += remainder[i] * pwd;
 			pwd *= BASE;
-		}
-	}
+		}*/
 
-	numberInBase10._size++;
-	int pwd = 1;
-	for (int i = 0; i < number._size; i++)
-	{
-		numberInBase10[numberInBase10._size - 1] += number[i] * pwd;
-		pwd *= BASE;
+		// когда BASE > 10 - остаток от деления на 10 - одна цифра
+		numberInBase10[numberInBase10._size - 1] = remainder[0];
+		numberInBase10._size++;
+		if (numberInBase10._size > MAX_10_LEN) // как-то получше надо обрабатывать такую ситуацию
+			break;
 	}
-	numberInBase10._sign = this->_sign;
+	numberInBase10._delLeadZeros();
 
 	// формирование строки
 	char* string = new char[numberInBase10._size + numberInBase10._sign + 1];
@@ -175,12 +170,13 @@ bool bigInt::saveToTextFile(const char* filename)
 }
 
 bool bigInt::saveToBinFile(const char* filename)
-{
+{// в бинарный файл первым делом записывается знак. А как иначе определить, что число получилось отрицательным?
 	FILE* pfDestination = fopen(filename, "w+b");
 	if (!pfDestination)
 		return false;
 
-	int res = fwrite(_digits, sizeof(digit), _size, pfDestination);
+	int res = fwrite(&_sign, sizeof(_sign), 1, pfDestination);
+	res = fwrite(_digits, sizeof(digit), _size, pfDestination);
 	fclose(pfDestination);
 	if (res < _size)
 		return false;
@@ -188,7 +184,7 @@ bool bigInt::saveToBinFile(const char* filename)
 }
 
 bool bigInt::getFromBinFile(const char* filename)
-{
+{// первым делом из бинарного файла считывается знак
 	FILE* pfSource = fopen(filename, "r+b");
 	if (!pfSource)
 		return false;
@@ -197,58 +193,19 @@ bool bigInt::getFromBinFile(const char* filename)
 	int fileSize = ftell(pfSource);
 	fseek(pfSource, 0, SEEK_SET);
 
+	if (fileSize < sizeof(_sign))
+		return false;
+	int len = fread(&_sign, sizeof(_sign), 1, pfSource);
+	fileSize -= sizeof(_sign);
 	if (_size) delete[] _digits;
 	_size = fileSize / sizeof(digit);
 	_digits = new digit[_size]();
-	int len = fread(_digits, sizeof(digit), _size, pfSource);
+	len = fread(_digits, sizeof(digit), _size, pfSource);
 	fclose(pfSource);
 
 	return true;
 }
 
-char* bigInt::_viewNumber()
-{
-	char* string = new char[10000]();
-	if (_sign)
-		string[0] = '-';
-
-	for (int i = _size - 1; i + 1; i--)
-	{
-		char tmp[100];
-		sprintf(tmp, "%u ", _digits[i]);
-		strcat(string, tmp);
-		/*	digit t = _digits[i];
-		printf("%d ", t);*/
-	}
-	return string;
-}
-
-digit bigInt::_normalize(longDigit d, digit &norm)
-{// нормализует число d, возвращает перенос
-	digit carry = 0;
-	if (d < 0)
-	{
-		while (d < 0)
-		{
-			d = d + BASE;
-			carry++;
-		}
-		norm = d;
-		return carry;
-	}
-	carry = d / BASE;
-	norm = d % BASE;
-	return carry;
-}
-
-void bigInt::_copy(const bigInt &rhv)
-{
-	_size = rhv._size;
-	_digits = new digit[_size];
-	_sign = rhv._sign;
-	memcpy(_digits, rhv._digits, _size*sizeof(digit));
-	return;
-}
 
 bigInt& bigInt::operator=(const bigInt& rhv)
 {
@@ -269,95 +226,6 @@ bigInt& bigInt::operator=(const longDigit value)
 	return *this;
 }
 
-void bigInt::_delLeadZeros()
-{
-	while ((_size - 1) && _digits && _digits[_size - 1] == 0)
-		_size--;
-	if (_size == 1 && _digits[0] == 0)
-		_sign = 0;
-}
-
-int bigInt::operator>(const bigInt& B)
-{
-	if (this->_cmp(B) > 0)
-		return 1;
-	return 0;
-}
-
-int bigInt::operator>=(const bigInt& B)
-{
-	if (this->_cmp(B) >= 0)
-		return 1;
-	return 0;
-}
-
-int bigInt::operator<(const bigInt& B)
-{
-	if (this->_cmp(B) < 0)
-		return 1;
-	return 0;
-}
-
-int bigInt::operator<=(const bigInt& B)
-{
-	if (this->_cmp(B) <= 0)
-		return 1;
-	return 0;
-}
-
-int bigInt::operator==(const bigInt& B)
-{
-	if (this->_cmp(B) == 0)
-		return 1;
-	return 0;
-}
-
-int bigInt::operator!=(const bigInt& B)
-{
-	if (this->_cmp(B) != 0)
-		return 1;
-	return 0;
-}
-
-longDigit bigInt::_cmp(const bigInt& B)
-{
-	// функция возвращает
-	// 0 - если числа равны,
-	// >0 - если this больше
-	// <0 - если this меньше
-	int thisSign;
-	if (this->_sign == 0)
-		thisSign = 1;
-	else
-		thisSign = -1;
-
-	if (this->_sign == B._sign)
-	{// если числа одного знака
-		if (this->_size > B._size)
-		{
-			return thisSign;
-		}
-		else if (this->_size < B._size)
-		{
-			return -thisSign;
-		}
-		else
-		{// если длины чисел равны
-			int i = this->_size - 1;
-			while ((i + 1) && this->_digits[i] == B[i])
-				i--;
-
-			if (i == -1)
-			{// в случае, если числа равны
-				return 0;
-			}
-			return ((longDigit) this->_digits[i] - (longDigit)B._digits[i])*thisSign;
-		}
-	}
-	else
-		return thisSign;
-	return 0;
-}
 
 bigInt bigInt::operator+(const bigInt& right)
 {
@@ -407,19 +275,37 @@ bigInt bigInt::operator^(const bigInt& right)
 	return res;
 }
 
-digit & bigInt::operator[](int i)
+
+bigInt bigInt::operator+=(const bigInt& right)
 {
-	if (i < 0)
-		return _digits[_size + i];
-	return this->_digits[i];
+	*this = bigInt(*this + right);
+	return *this;
 }
 
-digit bigInt::operator[](int i) const
+bigInt bigInt::operator-=(const bigInt& right)
 {
-	if (i < 0)
-		return _digits[_size + i];
-	return this->_digits[i];
+	*this = bigInt(*this - right);
+	return *this;
 }
+
+bigInt bigInt::operator*=(const bigInt& right)
+{
+	*this = bigInt(*this * right);
+	return *this;
+}
+
+bigInt bigInt::operator/=(const bigInt& right)
+{
+	*this = bigInt(*this / right);
+	return *this;
+}
+
+bigInt bigInt::operator%=(const bigInt& right)
+{
+	*this = bigInt(*this % right);
+	return *this;
+}
+
 
 bigInt bigInt::operator++()
 {
@@ -455,8 +341,89 @@ bigInt bigInt::operator--(int)
 	return *this;
 }
 
-void bigInt::_setSize(int size)
+
+int bigInt::operator>(const bigInt& B)
 {
+	if (this->_cmp(B) > 0)
+		return 1;
+	return 0;
+}
+
+int bigInt::operator>=(const bigInt& B)
+{
+	if (this->_cmp(B) >= 0)
+		return 1;
+	return 0;
+}
+
+int bigInt::operator<(const bigInt& B)
+{
+	if (this->_cmp(B) < 0)
+		return 1;
+	return 0;
+}
+
+int bigInt::operator<=(const bigInt& B)
+{
+	if (this->_cmp(B) <= 0)
+		return 1;
+	return 0;
+}
+
+int bigInt::operator==(const bigInt& B)
+{
+	if (this->_cmp(B) == 0)
+		return 1;
+	return 0;
+}
+
+int bigInt::operator!=(const bigInt& B)
+{
+	if (this->_cmp(B) != 0)
+		return 1;
+	return 0;
+}
+
+
+std::ostream& operator<<(std::ostream &out, bigInt A)
+{
+	char* str = A.getString();
+	out << str;
+	delete[] str;
+	return out;
+}
+
+std::istream& operator>>(std::istream &is, bigInt &A)
+{
+	char string[1000];
+	is >> string;
+	bigInt res(string);
+	A = res;
+	return is;
+}
+
+
+
+char* bigInt::_viewNumber()
+{// функция для отладки. Возвращает содержимое числа, но не в 10-ричном виде, а в том виде, в котором оно хранится
+	char* string = new char[10000]();
+	if (_sign)
+		string[0] = '-';
+
+	for (int i = _size - 1; i + 1; i--)
+	{
+		char tmp[100];
+		sprintf(tmp, "%u ", _digits[i]);
+		strcat(string, tmp);
+		/*	digit t = _digits[i];
+		printf("%d ", t);*/
+	}
+	return string;
+}
+
+void bigInt::_setSize(int size)
+{// изменяет размер числа, при этом обнуляя его. Необходимо, например, для произведения,
+	// когда, в общем случае, размрность результата равна сумме размерностей сомножителей
 	if (_size)
 		delete[] _digits;
 	_size = size;
@@ -464,9 +431,99 @@ void bigInt::_setSize(int size)
 	_digits = new digit[_size]();
 }
 
+digit & bigInt::operator[](int i)
+{
+	if (i < 0)
+		return _digits[_size + i];
+	return this->_digits[i];
+}
+
+digit bigInt::operator[](int i) const
+{
+	if (i < 0)
+		return _digits[_size + i];
+	return this->_digits[i];
+}
+
+digit bigInt::_normalize(longDigit d, digit &norm)
+{// нормализует число d, возвращает перенос. Используется, когда BASE != 2^32
+	digit carry = 0;
+	if (d < 0)
+	{
+		while (d < 0)
+		{
+			d = d + BASE;
+			carry++;
+		}
+		norm = d;
+		return carry;
+	}
+	carry = d / BASE;
+	norm = d % BASE;
+	return carry;
+}
+
+void bigInt::_copy(const bigInt &rhv)
+{
+	_size = rhv._size;
+	_digits = new digit[_size];
+	_sign = rhv._sign;
+	memcpy(_digits, rhv._digits, _size*sizeof(digit));
+	return;
+}
+
+void bigInt::_delLeadZeros()
+{
+	while ((_size - 1) && _digits && _digits[_size - 1] == 0)
+		_size--;
+	if (_size == 1 && _digits[0] == 0)
+		_sign = 0;
+}
+
+longDigit bigInt::_cmp(const bigInt& B)
+{
+	// функция возвращает
+	// 0 - если числа равны,
+	// >0 - если this больше
+	// <0 - если this меньше
+	int thisSign;
+	if (this->_sign == 0)
+		thisSign = 1;
+	else
+		thisSign = -1;
+
+	if (this->_sign == B._sign)
+	{// если числа одного знака
+		if (this->_size > B._size)
+		{
+			return thisSign;
+		}
+		else if (this->_size < B._size)
+		{
+			return -thisSign;
+		}
+		else
+		{// если длины чисел равны
+			int i = this->_size - 1;
+			while ((i + 1) && this->_digits[i] == B[i])
+				i--;
+
+			if (i == -1)
+			{// в случае, если числа равны
+				return 0;
+			}
+			return ((longDigit) this->_digits[i] - (longDigit)B._digits[i])*thisSign;
+		}
+	}
+	else
+		return thisSign;
+	return 0;
+}
+
 void bigInt::_shiftLeft(int s)
 {// сдвигает число на s разрядов вправо
 	// то есть, по сути, это умножение на BASE^s
+	// сдвиг на отрицательное s - деление на BASE^(-s)
 	digit* newDig = new digit[_size + s]();
 	for (int i = 0; i < _size; i++)
 	{
@@ -481,38 +538,11 @@ void bigInt::_shiftLeft(int s)
 	_delLeadZeros();
 }
 
-bigInt bigInt::operator+=(const bigInt& right)
-{
-	*this = bigInt(*this + right);
-	return *this;
-}
-
-bigInt bigInt::operator-=(const bigInt& right)
-{
-	*this = bigInt(*this - right);
-	return *this;
-}
-
-bigInt bigInt::operator*=(const bigInt& right)
-{
-	*this = bigInt(*this * right);
-	return *this;
-}
-
-bigInt bigInt::operator/=(const bigInt& right)
-{
-	*this = bigInt(*this / right);
-	return *this;
-}
-
-bigInt bigInt::operator%=(const bigInt& right)
-{
-	*this = bigInt(*this % right);
-	return *this;
-}
-
 const bigInt _simpleSum(const bigInt& left, const bigInt& right)
 {
+	// выглядит очень длинным и страшным. Но на самом деле оно простое, 
+	// много места занимают ассемблерные вставки для Visual Studio и GCC, закомментиованные участки кода, 
+	// которые используются, когда BASE != 2^32
 	bigInt A = left, B = right; // в А будет большее по модулю число, в B - меньшее.
 	A._sign = 0;
 	B._sign = 0;
@@ -531,23 +561,22 @@ const bigInt _simpleSum(const bigInt& left, const bigInt& right)
 	{// если числа одного знака, то просто складываем их и выставляем нужный знак
 		A._size++;
 		bigInt res = A; // в res сначала записываем копию A, но чуть большей размерности.
-		// Это сделано для небольшой оптимизации в дальнейшем, для случаев,
-		// когда размерность B значительно меньше размерности A
-		// и есть только небольшое количество переносов из младших разрядов в старшие
+						// Это сделано для небольшой оптимизации в дальнейшем, для случаев,
+						// когда размерность B значительно меньше размерности A
+						// и есть только небольшое количество переносов из младших разрядов в старшие
 		A._size--;
-		digit carry = 0;
+		//digit carry = 0;
 		digit carryAsm = 0;
 
 		for (int i = 0; i < B._size; i++)
 		{
-			longDigit tmp = A[i];
+			/*longDigit tmp = A[i];
 			tmp += B[i];
 			tmp += carry;
 			digit norm;
 			carry = res._normalize(tmp, norm);
-			res[i] = norm;
+			res[i] = norm;*/
 
-			
 			digit Ai = A[i];
 			digit Bi = B[i];
 			digit normAsm = 0;
@@ -563,7 +592,7 @@ const bigInt _simpleSum(const bigInt& left, const bigInt& right)
 				add	eax, ebx;
 				jnc plusCarry;
 				inc ecx;
-			
+
 			plusCarry:
 				mov	ebx, carryAsm;
 				add	eax, ebx;
@@ -587,19 +616,20 @@ const bigInt _simpleSum(const bigInt& left, const bigInt& right)
 				"exitSum1:;" : "=a" (normAsm), "=c" (carryAsm) : "a" (Ai), "b" (Bi), "d" (carryAsm));
 #endif
 
-			if (normAsm != norm)
+			/*if (normAsm != norm)
 				printf("\n********************* normAsm != norm in _simpleSum_1 ******************\n");
 			if (carryAsm != carry)
-				printf("\n********************* carryAsm != carry in _simpleSum_1 ******************\n");
+				printf("\n********************* carryAsm != carry in _simpleSum_1 ******************\n");*/
+			res[i] = normAsm;
 		}
 		// условие (carry != 0) для выхода из цикла и есть та самая небольшая оптимизация
-		for (int i = B._size; (i < A._size) && carry; i++)
+		for (int i = B._size; (i < A._size) && carryAsm; i++)
 		{
-			longDigit tmp = A[i];
+			/*longDigit tmp = A[i];
 			tmp += carry;
 			digit norm;
 			carry = res._normalize(tmp, norm);
-			res[i] = norm;
+			res[i] = norm;*/
 
 			digit Ai = A[i];
 			digit normAsm = 0;
@@ -629,28 +659,29 @@ const bigInt _simpleSum(const bigInt& left, const bigInt& right)
 				"incl	%%ecx;"
 				"exitSum2:;" : "=a" (normAsm), "=c" (carryAsm) : "a" (Ai), "d" (carryAsm));
 #endif
-			if (normAsm != norm)
+			/*if (normAsm != norm)
 				printf("\n********************* normAsm != norm in _simpleSum_2 ******************\n");
 			if (carryAsm != carry)
-				printf("\n********************* carryAsm != carry in _simpleSum_2 ******************\n");
+				printf("\n********************* carryAsm != carry in _simpleSum_2 ******************\n");*/
+			res[i] = normAsm;
 		}
-		res[A._size] = carry;
+		res[A._size] = carryAsm;
 		res._sign = A._sign;
 		return res;
 	}
 	else
 	{// отнимаем одно от другого и выставляем нужный знак
 		bigInt res = A;
-		digit carry = 0;
+		//digit carry = 0;
 		digit carryAsm = 0;
 		for (int i = 0; i < B._size; i++)
 		{
-			longDigit tmp = A[i];
+			/*longDigit tmp = A[i];
 			tmp -= B[i];
 			tmp -= carry;
 			digit norm;
 			carry = res._normalize(tmp, norm);
-			res[i] = norm;
+			res[i] = norm;*/
 
 			digit Ai = A[i];
 			digit Bi = B[i];
@@ -691,20 +722,20 @@ const bigInt _simpleSum(const bigInt& left, const bigInt& right)
 				"incl	%%ecx;"
 				"exitSum3:;" : "=a" (normAsm), "=c" (carryAsm) : "a" (Ai), "b" (Bi), "d" (carryAsm)); 
 #endif
-			if (normAsm != norm)
+			/*if (normAsm != norm)
 				printf("\n********************* normAsm != norm in _simpleSum_3 ******************\n");
 			if (carryAsm != carry)
-				printf("\n********************* carryAsm != carry in _simpleSum_3 ******************\n");
-
+				printf("\n********************* carryAsm != carry in _simpleSum_3 ******************\n");*/
+			res[i] = normAsm;
 		}
 
-		for (int i = B._size; (i < A._size) && carry; i++)
+		for (int i = B._size; (i < A._size) && carryAsm; i++)
 		{
-			longDigit tmp = A[i];
+			/*longDigit tmp = A[i];
 			tmp -= carry;
 			digit norm;
 			carry = res._normalize(tmp, norm);
-			res[i] = norm;
+			res[i] = norm;*/
 
 			digit Ai = A[i];
 			digit normAsm = 0;
@@ -734,11 +765,11 @@ const bigInt _simpleSum(const bigInt& left, const bigInt& right)
 				"incl	%%ecx;"
 				"exitSum4:;" : "=a" (normAsm), "=c" (carryAsm) : "a" (Ai), "d" (carryAsm));
 #endif
-			if (normAsm != norm)
+			/*if (normAsm != norm)
 				printf("\n********************* normAsm != norm in _simpleSum_4 ******************\n");
 			if (carryAsm != carry)
-				printf("\n********************* carryAsm != carry in _simpleSum_4 ******************\n");
-
+				printf("\n********************* carryAsm != carry in _simpleSum_4 ******************\n");*/
+			res[i] = normAsm;
 		}
 		res._sign = A._sign;
 		return res;
@@ -749,19 +780,21 @@ const bigInt _simpleSum(const bigInt& left, const bigInt& right)
 
 const bigInt _simpleMul(const bigInt& A, const bigInt& B)
 {// простое умножение "столбиком"
+	// выглядит большим и страшным из-за ассемблерных вставок и закомментированного кода
 	bigInt res;
 	res._setSize(A._size + B._size);
-	digit carry = 0;
+	//digit carry = 0;
 	digit carryAsm = 0;
 	for (int i = 0; i < A._size; i++)
 	{// умножение младшего разряда B на число A
-		unsLongDigit tmp = A[i];
+		
+		/*unsLongDigit tmp = A[i];
 		tmp *= B[0];
 		tmp += carry;
 		digit norm;
 		carry = tmp / BASE;
 		norm = tmp % BASE;
-		res[i] = norm;
+		res[i] = norm;*/
 
 		digit Ai = A[i];
 		digit B0 = B[0];
@@ -794,27 +827,28 @@ const bigInt _simpleMul(const bigInt& A, const bigInt& B)
 			"exitMul1:;" : "=a" (normAsm), "=d" (carryAsm) : "a" (Ai), "b" (B0), "c" (carryAsm));
 #endif
 
-		if (normAsm != norm)
+		/*if (normAsm != norm)
 			printf("\n********************* normAsm != norm in _simpleMul_1 ******************\n");
 		if (carryAsm != carry)
-			printf("\n********************* carryAsm != carry in _simpleMul_1 ******************\n");
-	
+			printf("\n********************* carryAsm != carry in _simpleMul_1 ******************\n");*/
+		res[i] = normAsm;
+
 	}
-	res[A._size] = carry;
+	res[A._size] = carryAsm;
 
 	for (int i = 1; i < B._size; i++)
 	{
-		carry = 0;
+		//carry = 0;
 		carryAsm = 0;
 		for (int j = 0; j < A._size; j++)
 		{
-			unsLongDigit tmp = B[i];
+			/*unsLongDigit tmp = B[i];
 			tmp *= A[j];
 			tmp += res[i + j];
 			tmp += carry;
 			digit norm;
 			carry = tmp / BASE;
-			norm = tmp % BASE;
+			norm = tmp % BASE;*/
 
 			digit Aj = A[j];
 			digit Bi = B[i];
@@ -856,14 +890,14 @@ const bigInt _simpleMul(const bigInt& A, const bigInt& B)
 				"incl	%%edx;"
 				"exitMul2:;" : "=a" (normAsm), "=d" (carryAsm) : "a" (Aj), "b" (Bi), "c" (carryAsm), "D"(Ri));
 #endif
-			if (normAsm != norm)
+			/*if (normAsm != norm)
 				printf("\n********************* normAsm != norm in _simpleMul_2 ******************\n");
 			if (carryAsm != carry)
-				printf("\n********************* carryAsm != carry in _simpleMul_2 ******************\n");
+				printf("\n********************* carryAsm != carry in _simpleMul_2 ******************\n");*/
 
-			res[i + j] = norm;
+			res[i + j] = normAsm;
 		}
-		res[i + A._size] = carry;
+		res[i + A._size] = carryAsm;
 	}
 
 	res._sign = (!A._sign && B._sign) || (A._sign && !B._sign);
@@ -888,7 +922,7 @@ const bigInt _divividing(const bigInt& A, const bigInt& B, bigInt &remainder)
 	if (remainder < divider)
 	{
 		remainder = A;
-		return bigInt((long long int) 0 );
+		return bigInt((long long int) 0);
 	}
 
 	if (remainder._size == divider._size && (remainder._size == 1))
@@ -924,24 +958,7 @@ const bigInt _divividing(const bigInt& A, const bigInt& B, bigInt &remainder)
 		return res;
 	}
 	return _divColumn(A, B, remainder);
-	return _divBinSearch(A, B, remainder);
-}
-
-std::ostream& operator<<(std::ostream &out, bigInt A)
-{
-	char* str = A.getString();
-	out << str;
-	delete[] str;
-	return out;
-}
-
-std::istream& operator>>(std::istream &is, bigInt &A)
-{
-	char string[1000];
-	is >> string;
-	bigInt res(string);
-	A = res;
-	return is;
+	return _divBinSearch(A, B, remainder); // 2 варианта деления, но _divColumn должен работать быстрее
 }
 
 const bigInt _divColumn(const bigInt& A, const bigInt& B, bigInt &remainder)

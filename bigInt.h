@@ -3,9 +3,16 @@
 typedef unsigned int digit;
 typedef long long int longDigit;
 typedef unsigned long long int unsLongDigit;
+
+// при небольших изменениях, в программе могут проводиться вычисления по любому модулю (в любой СС)
+// поэтому не во всех местах код оптимизирован под BASE = 2^32 (например, сложение через циклы, а не кусками памяти)
 #define BASE 4294967296 // 2^32
+
 //#define forVS // если компилируется в Visual Studio
 #define forGCC
+
+#define MAX_10_LEN 2000000	// ограничение на максимальное число разрядов 10-ричного числа 
+							// (вызвано ограничением new для строки, в которую будет записано число
 
 #define DIVISION_BY_ZERO 1
 
@@ -46,7 +53,8 @@ public:
 	bigInt operator++(int);
 	bigInt operator--();
 	bigInt operator--(int);
-
+	
+	// TODO: bool вместо int
 	int operator>(const bigInt& B);
 	int operator>=(const bigInt& B);
 	int operator<(const bigInt& B);
@@ -56,6 +64,8 @@ public:
 
 	friend std::ostream& operator<<(std::ostream &out, bigInt A);
 	friend std::istream& operator>>(std::istream &is, bigInt &A);
+
+
 private:
 	int _size; // можно было бы взять unsigned long long int, но у оператора new есть ограничение на максимальный размер массива 0x7fffffff байт. Так что это, по сути, и ограничивает максимальную длинну числа
 	digit* _digits;

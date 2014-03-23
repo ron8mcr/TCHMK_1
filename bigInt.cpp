@@ -1,4 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS // special for Visual studio
+п»ї#define _CRT_SECURE_NO_WARNINGS // special for Visual studio
 #include "bigInt.h"
 #include <stdio.h>
 #include <string.h>
@@ -11,9 +11,9 @@ bigInt::bigInt()
 }
 
 bigInt::bigInt(const char* string)
-{// конструктор из строки, в которой записано число в 10-ричной форме
+{// РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РёР· СЃС‚СЂРѕРєРё, РІ РєРѕС‚РѕСЂРѕР№ Р·Р°РїРёСЃР°РЅРѕ С‡РёСЃР»Рѕ РІ 10-СЂРёС‡РЅРѕР№ С„РѕСЂРјРµ
 
-	// numberInBase10 - число в 10-ричной системе счисления
+	// numberInBase10 - С‡РёСЃР»Рѕ РІ 10-СЂРёС‡РЅРѕР№ СЃРёСЃС‚РµРјРµ СЃС‡РёСЃР»РµРЅРёСЏ
 	bigInt numberInBase10;
 	numberInBase10._size = strlen(string);
 	numberInBase10._sign = 0;
@@ -37,7 +37,7 @@ bigInt::bigInt(const char* string)
 	_sign = numberInBase10._sign;
 	numberInBase10._sign = 0;
 
-	// перевод из 10-ричной системы счисления в BASE-ричную
+	// РїРµСЂРµРІРѕРґ РёР· 10-СЂРёС‡РЅРѕР№ СЃРёСЃС‚РµРјС‹ СЃС‡РёСЃР»РµРЅРёСЏ РІ BASE-СЂРёС‡РЅСѓСЋ
 
 	bigInt res;
 	res = 0;
@@ -89,10 +89,10 @@ bigInt::~bigInt()
 
 
 char* bigInt::getString()
-{// возвращает строку, в которой записано число в 10-ричной системе счисления
+{// РІРѕР·РІСЂР°С‰Р°РµС‚ СЃС‚СЂРѕРєСѓ, РІ РєРѕС‚РѕСЂРѕР№ Р·Р°РїРёСЃР°РЅРѕ С‡РёСЃР»Рѕ РІ 10-СЂРёС‡РЅРѕР№ СЃРёСЃС‚РµРјРµ СЃС‡РёСЃР»РµРЅРёСЏ
 
-	bigInt numberInBase10; // здесь будет храниться число в 10-ричной СС для вывода
-	numberInBase10._setSize(MAX_10_LEN);  // здесь запряталось ограничение на максимальную размерность 10-ричного числа
+	bigInt numberInBase10; // Р·РґРµСЃСЊ Р±СѓРґРµС‚ С…СЂР°РЅРёС‚СЊСЃСЏ С‡РёСЃР»Рѕ РІ 10-СЂРёС‡РЅРѕР№ РЎРЎ РґР»СЏ РІС‹РІРѕРґР°
+	numberInBase10._setSize(MAX_10_LEN);  // Р·РґРµСЃСЊ Р·Р°РїСЂСЏС‚Р°Р»РѕСЃСЊ РѕРіСЂР°РЅРёС‡РµРЅРёРµ РЅР° РјР°РєСЃРёРјР°Р»СЊРЅСѓСЋ СЂР°Р·РјРµСЂРЅРѕСЃС‚СЊ 10-СЂРёС‡РЅРѕРіРѕ С‡РёСЃР»Р°
 	numberInBase10._size = 1;
 	bigInt thisNumber = *this;
 	thisNumber._sign = 0;
@@ -101,7 +101,7 @@ char* bigInt::getString()
 	{
 		bigInt remainder;
 		thisNumber = _divividing(thisNumber, 10, remainder);
-		// раскомментровать следующие строки, если BASE < 10		
+		// СЂР°СЃРєРѕРјРјРµРЅС‚СЂРѕРІР°С‚СЊ СЃР»РµРґСѓСЋС‰РёРµ СЃС‚СЂРѕРєРё, РµСЃР»Рё BASE < 10		
 		/*int pwd = 1;
 		for (int i = 0; i < remainder._size; i++)
 		{
@@ -109,15 +109,15 @@ char* bigInt::getString()
 			pwd *= BASE;
 		}*/
 
-		// когда BASE > 10 - остаток от деления на 10 - одна цифра
+		// РєРѕРіРґР° BASE > 10 - РѕСЃС‚Р°С‚РѕРє РѕС‚ РґРµР»РµРЅРёСЏ РЅР° 10 - РѕРґРЅР° С†РёС„СЂР°
 		numberInBase10[numberInBase10._size - 1] = remainder[0];
 		numberInBase10._size++;
-		if (numberInBase10._size > MAX_10_LEN) // как-то получше надо обрабатывать такую ситуацию
+		if (numberInBase10._size > MAX_10_LEN) // РєР°Рє-С‚Рѕ РїРѕР»СѓС‡С€Рµ РЅР°РґРѕ РѕР±СЂР°Р±Р°С‚С‹РІР°С‚СЊ С‚Р°РєСѓСЋ СЃРёС‚СѓР°С†РёСЋ
 			break;
 	}
 	numberInBase10._delLeadZeros();
 
-	// формирование строки
+	// С„РѕСЂРјРёСЂРѕРІР°РЅРёРµ СЃС‚СЂРѕРєРё
 	char* string = new char[numberInBase10._size + numberInBase10._sign + 1];
 	int i = 0;
 	if (numberInBase10._sign)
@@ -144,7 +144,7 @@ bool bigInt::getFromTextFile(const char* filename)
 	fseek(pfSource, 0, SEEK_SET);
 
 	char* string = new char[fileSize + 1]();
-	int len = fread(string, sizeof(char), fileSize, pfSource);
+	int len = fscanf(pfSource, "%s", string);
 	fclose(pfSource);
 
 	bigInt res(string);
@@ -170,7 +170,7 @@ bool bigInt::saveToTextFile(const char* filename)
 }
 
 bool bigInt::saveToBinFile(const char* filename)
-{// в бинарный файл первым делом записывается знак. А как иначе определить, что число получилось отрицательным?
+{// РІ Р±РёРЅР°СЂРЅС‹Р№ С„Р°Р№Р» РїРµСЂРІС‹Рј РґРµР»РѕРј Р·Р°РїРёСЃС‹РІР°РµС‚СЃСЏ Р·РЅР°Рє. Рђ РєР°Рє РёРЅР°С‡Рµ РѕРїСЂРµРґРµР»РёС‚СЊ, С‡С‚Рѕ С‡РёСЃР»Рѕ РїРѕР»СѓС‡РёР»РѕСЃСЊ РѕС‚СЂРёС†Р°С‚РµР»СЊРЅС‹Рј?
 	FILE* pfDestination = fopen(filename, "w+b");
 	if (!pfDestination)
 		return false;
@@ -184,7 +184,7 @@ bool bigInt::saveToBinFile(const char* filename)
 }
 
 bool bigInt::getFromBinFile(const char* filename)
-{// первым делом из бинарного файла считывается знак
+{// РїРµСЂРІС‹Рј РґРµР»РѕРј РёР· Р±РёРЅР°СЂРЅРѕРіРѕ С„Р°Р№Р»Р° СЃС‡РёС‚С‹РІР°РµС‚СЃСЏ Р·РЅР°Рє
 	FILE* pfSource = fopen(filename, "r+b");
 	if (!pfSource)
 		return false;
@@ -235,7 +235,7 @@ bigInt bigInt::operator+(const bigInt& right)
 }
 
 bigInt bigInt::operator-() const
-{// унарный минус
+{// СѓРЅР°СЂРЅС‹Р№ РјРёРЅСѓСЃ
 	bigInt res(*this);
 	res._sign = !res._sign;
 	return res;
@@ -265,9 +265,9 @@ bigInt bigInt::operator%(const bigInt& right)
 }
 
 bigInt bigInt::operator^(const bigInt& right)
-{// возведение в степень right
-	// да, этот оператор обычно имеет другой смысл
-	// и здесь, видимо, имелось ввиду возведение в степень по модулю, но по какому?
+{// РІРѕР·РІРµРґРµРЅРёРµ РІ СЃС‚РµРїРµРЅСЊ right
+	// РґР°, СЌС‚РѕС‚ РѕРїРµСЂР°С‚РѕСЂ РѕР±С‹С‡РЅРѕ РёРјРµРµС‚ РґСЂСѓРіРѕР№ СЃРјС‹СЃР»
+	// Рё Р·РґРµСЃСЊ, РІРёРґРёРјРѕ, РёРјРµР»РѕСЃСЊ РІРІРёРґСѓ РІРѕР·РІРµРґРµРЅРёРµ РІ СЃС‚РµРїРµРЅСЊ РїРѕ РјРѕРґСѓР»СЋ, РЅРѕ РїРѕ РєР°РєРѕРјСѓ?
 	bigInt res = 1;
 	bigInt base = *this;
 	for (bigInt i = right; i > (long long int) 0; i--)
@@ -405,7 +405,7 @@ std::istream& operator>>(std::istream &is, bigInt &A)
 
 
 char* bigInt::_viewNumber()
-{// функция для отладки. Возвращает содержимое числа, но не в 10-ричном виде, а в том виде, в котором оно хранится
+{// С„СѓРЅРєС†РёСЏ РґР»СЏ РѕС‚Р»Р°РґРєРё. Р’РѕР·РІСЂР°С‰Р°РµС‚ СЃРѕРґРµСЂР¶РёРјРѕРµ С‡РёСЃР»Р°, РЅРѕ РЅРµ РІ 10-СЂРёС‡РЅРѕРј РІРёРґРµ, Р° РІ С‚РѕРј РІРёРґРµ, РІ РєРѕС‚РѕСЂРѕРј РѕРЅРѕ С…СЂР°РЅРёС‚СЃСЏ
 	char* string = new char[10000]();
 	if (_sign)
 		string[0] = '-';
@@ -422,8 +422,8 @@ char* bigInt::_viewNumber()
 }
 
 void bigInt::_setSize(int size)
-{// изменяет размер числа, при этом обнуляя его. Необходимо, например, для произведения,
-	// когда, в общем случае, размрность результата равна сумме размерностей сомножителей
+{// РёР·РјРµРЅСЏРµС‚ СЂР°Р·РјРµСЂ С‡РёСЃР»Р°, РїСЂРё СЌС‚РѕРј РѕР±РЅСѓР»СЏСЏ РµРіРѕ. РќРµРѕР±С…РѕРґРёРјРѕ, РЅР°РїСЂРёРјРµСЂ, РґР»СЏ РїСЂРѕРёР·РІРµРґРµРЅРёСЏ,
+	// РєРѕРіРґР°, РІ РѕР±С‰РµРј СЃР»СѓС‡Р°Рµ, СЂР°Р·РјСЂРЅРѕСЃС‚СЊ СЂРµР·СѓР»СЊС‚Р°С‚Р° СЂР°РІРЅР° СЃСѓРјРјРµ СЂР°Р·РјРµСЂРЅРѕСЃС‚РµР№ СЃРѕРјРЅРѕР¶РёС‚РµР»РµР№
 	if (_size)
 		delete[] _digits;
 	_size = size;
@@ -446,7 +446,7 @@ digit bigInt::operator[](int i) const
 }
 
 digit bigInt::_normalize(longDigit d, digit &norm)
-{// нормализует число d, возвращает перенос. Используется, когда BASE != 2^32
+{// РЅРѕСЂРјР°Р»РёР·СѓРµС‚ С‡РёСЃР»Рѕ d, РІРѕР·РІСЂР°С‰Р°РµС‚ РїРµСЂРµРЅРѕСЃ. РСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ, РєРѕРіРґР° BASE != 2^32
 	digit carry = 0;
 	if (d < 0)
 	{
@@ -482,10 +482,10 @@ void bigInt::_delLeadZeros()
 
 longDigit bigInt::_cmp(const bigInt& B)
 {
-	// функция возвращает
-	// 0 - если числа равны,
-	// >0 - если this больше
-	// <0 - если this меньше
+	// С„СѓРЅРєС†РёСЏ РІРѕР·РІСЂР°С‰Р°РµС‚
+	// 0 - РµСЃР»Рё С‡РёСЃР»Р° СЂР°РІРЅС‹,
+	// >0 - РµСЃР»Рё this Р±РѕР»СЊС€Рµ
+	// <0 - РµСЃР»Рё this РјРµРЅСЊС€Рµ
 	int thisSign;
 	if (this->_sign == 0)
 		thisSign = 1;
@@ -493,7 +493,7 @@ longDigit bigInt::_cmp(const bigInt& B)
 		thisSign = -1;
 
 	if (this->_sign == B._sign)
-	{// если числа одного знака
+	{// РµСЃР»Рё С‡РёСЃР»Р° РѕРґРЅРѕРіРѕ Р·РЅР°РєР°
 		if (this->_size > B._size)
 		{
 			return thisSign;
@@ -503,13 +503,13 @@ longDigit bigInt::_cmp(const bigInt& B)
 			return -thisSign;
 		}
 		else
-		{// если длины чисел равны
+		{// РµСЃР»Рё РґР»РёРЅС‹ С‡РёСЃРµР» СЂР°РІРЅС‹
 			int i = this->_size - 1;
 			while ((i + 1) && this->_digits[i] == B[i])
 				i--;
 
 			if (i == -1)
-			{// в случае, если числа равны
+			{// РІ СЃР»СѓС‡Р°Рµ, РµСЃР»Рё С‡РёСЃР»Р° СЂР°РІРЅС‹
 				return 0;
 			}
 			return ((longDigit) this->_digits[i] - (longDigit)B._digits[i])*thisSign;
@@ -521,9 +521,9 @@ longDigit bigInt::_cmp(const bigInt& B)
 }
 
 void bigInt::_shiftLeft(int s)
-{// сдвигает число на s разрядов вправо
-	// то есть, по сути, это умножение на BASE^s
-	// сдвиг на отрицательное s - деление на BASE^(-s)
+{// СЃРґРІРёРіР°РµС‚ С‡РёСЃР»Рѕ РЅР° s СЂР°Р·СЂСЏРґРѕРІ РІРїСЂР°РІРѕ
+	// С‚Рѕ РµСЃС‚СЊ, РїРѕ СЃСѓС‚Рё, СЌС‚Рѕ СѓРјРЅРѕР¶РµРЅРёРµ РЅР° BASE^s
+	// СЃРґРІРёРі РЅР° РѕС‚СЂРёС†Р°С‚РµР»СЊРЅРѕРµ s - РґРµР»РµРЅРёРµ РЅР° BASE^(-s)
 	digit* newDig = new digit[_size + s]();
 	for (int i = 0; i < _size; i++)
 	{
@@ -540,10 +540,10 @@ void bigInt::_shiftLeft(int s)
 
 const bigInt _simpleSum(const bigInt& left, const bigInt& right)
 {
-	// выглядит очень длинным и страшным. Но на самом деле оно простое, 
-	// много места занимают ассемблерные вставки для Visual Studio и GCC, закомментиованные участки кода, 
-	// которые используются, когда BASE != 2^32
-	bigInt A = left, B = right; // в А будет большее по модулю число, в B - меньшее.
+	// РІС‹РіР»СЏРґРёС‚ РѕС‡РµРЅСЊ РґР»РёРЅРЅС‹Рј Рё СЃС‚СЂР°С€РЅС‹Рј. РќРѕ РЅР° СЃР°РјРѕРј РґРµР»Рµ РѕРЅРѕ РїСЂРѕСЃС‚РѕРµ, 
+	// РјРЅРѕРіРѕ РјРµСЃС‚Р° Р·Р°РЅРёРјР°СЋС‚ Р°СЃСЃРµРјР±Р»РµСЂРЅС‹Рµ РІСЃС‚Р°РІРєРё РґР»СЏ Visual Studio Рё GCC, Р·Р°РєРѕРјРјРµРЅС‚РёРѕРІР°РЅРЅС‹Рµ СѓС‡Р°СЃС‚РєРё РєРѕРґР°, 
+	// РєРѕС‚РѕСЂС‹Рµ РёСЃРїРѕР»СЊР·СѓСЋС‚СЃСЏ, РєРѕРіРґР° BASE != 2^32
+	bigInt A = left, B = right; // РІ Рђ Р±СѓРґРµС‚ Р±РѕР»СЊС€РµРµ РїРѕ РјРѕРґСѓР»СЋ С‡РёСЃР»Рѕ, РІ B - РјРµРЅСЊС€РµРµ.
 	A._sign = 0;
 	B._sign = 0;
 	if (A > B)
@@ -558,12 +558,12 @@ const bigInt _simpleSum(const bigInt& left, const bigInt& right)
 	}
 
 	if (A._sign == B._sign)
-	{// если числа одного знака, то просто складываем их и выставляем нужный знак
+	{// РµСЃР»Рё С‡РёСЃР»Р° РѕРґРЅРѕРіРѕ Р·РЅР°РєР°, С‚Рѕ РїСЂРѕСЃС‚Рѕ СЃРєР»Р°РґС‹РІР°РµРј РёС… Рё РІС‹СЃС‚Р°РІР»СЏРµРј РЅСѓР¶РЅС‹Р№ Р·РЅР°Рє
 		A._size++;
-		bigInt res = A; // в res сначала записываем копию A, но чуть большей размерности.
-						// Это сделано для небольшой оптимизации в дальнейшем, для случаев,
-						// когда размерность B значительно меньше размерности A
-						// и есть только небольшое количество переносов из младших разрядов в старшие
+		bigInt res = A; // РІ res СЃРЅР°С‡Р°Р»Р° Р·Р°РїРёСЃС‹РІР°РµРј РєРѕРїРёСЋ A, РЅРѕ С‡СѓС‚СЊ Р±РѕР»СЊС€РµР№ СЂР°Р·РјРµСЂРЅРѕСЃС‚Рё.
+						// Р­С‚Рѕ СЃРґРµР»Р°РЅРѕ РґР»СЏ РЅРµР±РѕР»СЊС€РѕР№ РѕРїС‚РёРјРёР·Р°С†РёРё РІ РґР°Р»СЊРЅРµР№С€РµРј, РґР»СЏ СЃР»СѓС‡Р°РµРІ,
+						// РєРѕРіРґР° СЂР°Р·РјРµСЂРЅРѕСЃС‚СЊ B Р·РЅР°С‡РёС‚РµР»СЊРЅРѕ РјРµРЅСЊС€Рµ СЂР°Р·РјРµСЂРЅРѕСЃС‚Рё A
+						// Рё РµСЃС‚СЊ С‚РѕР»СЊРєРѕ РЅРµР±РѕР»СЊС€РѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ РїРµСЂРµРЅРѕСЃРѕРІ РёР· РјР»Р°РґС€РёС… СЂР°Р·СЂСЏРґРѕРІ РІ СЃС‚Р°СЂС€РёРµ
 		A._size--;
 		//digit carry = 0;
 		digit carryAsm = 0;
@@ -581,7 +581,7 @@ const bigInt _simpleSum(const bigInt& left, const bigInt& right)
 			digit Bi = B[i];
 			digit normAsm = 0;
 
-			// ассемблерная вставка для VisualStudio (согласна работать только с __asm {})
+			// Р°СЃСЃРµРјР±Р»РµСЂРЅР°СЏ РІСЃС‚Р°РІРєР° РґР»СЏ VisualStudio (СЃРѕРіР»Р°СЃРЅР° СЂР°Р±РѕС‚Р°С‚СЊ С‚РѕР»СЊРєРѕ СЃ __asm {})
 #ifdef forVS
 			__asm
 			{
@@ -603,7 +603,7 @@ const bigInt _simpleSum(const bigInt& left, const bigInt& right)
 				mov	normAsm, eax;
 			}
 #endif
-			// ассемблерная вставка для GCC
+			// Р°СЃСЃРµРјР±Р»РµСЂРЅР°СЏ РІСЃС‚Р°РІРєР° РґР»СЏ GCC
 #ifdef forGCC
 			asm volatile   (
 				"xorl	%%ecx, %%ecx;"
@@ -622,7 +622,7 @@ const bigInt _simpleSum(const bigInt& left, const bigInt& right)
 				printf("\n********************* carryAsm != carry in _simpleSum_1 ******************\n");*/
 			res[i] = normAsm;
 		}
-		// условие (carry != 0) для выхода из цикла и есть та самая небольшая оптимизация
+		// СѓСЃР»РѕРІРёРµ (carry != 0) РґР»СЏ РІС‹С…РѕРґР° РёР· С†РёРєР»Р° Рё РµСЃС‚СЊ С‚Р° СЃР°РјР°СЏ РЅРµР±РѕР»СЊС€Р°СЏ РѕРїС‚РёРјРёР·Р°С†РёСЏ
 		for (int i = B._size; (i < A._size) && carryAsm; i++)
 		{
 			/*longDigit tmp = A[i];
@@ -633,7 +633,7 @@ const bigInt _simpleSum(const bigInt& left, const bigInt& right)
 
 			digit Ai = A[i];
 			digit normAsm = 0;
-			// ассемблерная вставка для VisualStudio
+			// Р°СЃСЃРµРјР±Р»РµСЂРЅР°СЏ РІСЃС‚Р°РІРєР° РґР»СЏ VisualStudio
 #ifdef forVS
 			__asm
 			{
@@ -650,7 +650,7 @@ const bigInt _simpleSum(const bigInt& left, const bigInt& right)
 			}
 #endif
 
-			// ассемблерная вставка для GCC
+			// Р°СЃСЃРµРјР±Р»РµСЂРЅР°СЏ РІСЃС‚Р°РІРєР° РґР»СЏ GCC
 #ifdef forGCC
 			asm volatile (
 				"xorl	%%ecx, %%ecx;"
@@ -670,7 +670,7 @@ const bigInt _simpleSum(const bigInt& left, const bigInt& right)
 		return res;
 	}
 	else
-	{// отнимаем одно от другого и выставляем нужный знак
+	{// РѕС‚РЅРёРјР°РµРј РѕРґРЅРѕ РѕС‚ РґСЂСѓРіРѕРіРѕ Рё РІС‹СЃС‚Р°РІР»СЏРµРј РЅСѓР¶РЅС‹Р№ Р·РЅР°Рє
 		bigInt res = A;
 		//digit carry = 0;
 		digit carryAsm = 0;
@@ -687,7 +687,7 @@ const bigInt _simpleSum(const bigInt& left, const bigInt& right)
 			digit Bi = B[i];
 			digit normAsm = 0;
 
-			// ассемблерная вставка для Visual studio
+			// Р°СЃСЃРµРјР±Р»РµСЂРЅР°СЏ РІСЃС‚Р°РІРєР° РґР»СЏ Visual studio
 #ifdef forVS
 			__asm
 			{
@@ -710,7 +710,7 @@ const bigInt _simpleSum(const bigInt& left, const bigInt& right)
 			}
 #endif
 
-			// ассемблерная вставка для GCC
+			// Р°СЃСЃРµРјР±Р»РµСЂРЅР°СЏ РІСЃС‚Р°РІРєР° РґР»СЏ GCC
 #ifdef forGCC
 			asm volatile (
 				"xorl	%%ecx, %%ecx;"
@@ -740,7 +740,7 @@ const bigInt _simpleSum(const bigInt& left, const bigInt& right)
 			digit Ai = A[i];
 			digit normAsm = 0;
 
-			// ассемблерная вставка для Visual studio
+			// Р°СЃСЃРµРјР±Р»РµСЂРЅР°СЏ РІСЃС‚Р°РІРєР° РґР»СЏ Visual studio
 #ifdef forVS
 			__asm
 			{
@@ -756,7 +756,7 @@ const bigInt _simpleSum(const bigInt& left, const bigInt& right)
 			}
 #endif
 
-			// ассемблерная вставка для GCC
+			// Р°СЃСЃРµРјР±Р»РµСЂРЅР°СЏ РІСЃС‚Р°РІРєР° РґР»СЏ GCC
 #ifdef forGCC
 			asm volatile (
 				"xorl	%%ecx, %%ecx;"
@@ -779,14 +779,14 @@ const bigInt _simpleSum(const bigInt& left, const bigInt& right)
 }
 
 const bigInt _simpleMul(const bigInt& A, const bigInt& B)
-{// простое умножение "столбиком"
-	// выглядит большим и страшным из-за ассемблерных вставок и закомментированного кода
+{// РїСЂРѕСЃС‚РѕРµ СѓРјРЅРѕР¶РµРЅРёРµ "СЃС‚РѕР»Р±РёРєРѕРј"
+	// РІС‹РіР»СЏРґРёС‚ Р±РѕР»СЊС€РёРј Рё СЃС‚СЂР°С€РЅС‹Рј РёР·-Р·Р° Р°СЃСЃРµРјР±Р»РµСЂРЅС‹С… РІСЃС‚Р°РІРѕРє Рё Р·Р°РєРѕРјРјРµРЅС‚РёСЂРѕРІР°РЅРЅРѕРіРѕ РєРѕРґР°
 	bigInt res;
 	res._setSize(A._size + B._size);
 	//digit carry = 0;
 	digit carryAsm = 0;
 	for (int i = 0; i < A._size; i++)
-	{// умножение младшего разряда B на число A
+	{// СѓРјРЅРѕР¶РµРЅРёРµ РјР»Р°РґС€РµРіРѕ СЂР°Р·СЂСЏРґР° B РЅР° С‡РёСЃР»Рѕ A
 		
 		/*unsLongDigit tmp = A[i];
 		tmp *= B[0];
@@ -800,13 +800,13 @@ const bigInt _simpleMul(const bigInt& A, const bigInt& B)
 		digit B0 = B[0];
 		digit normAsm = 0;
 
-		// ассемблерная вставка для VisualStudio
+		// Р°СЃСЃРµРјР±Р»РµСЂРЅР°СЏ РІСЃС‚Р°РІРєР° РґР»СЏ VisualStudio
 #ifdef forVS
 		__asm
 		{
 			mov	eax, Ai;
 			mov	ebx, B0;
-			mul	ebx; // результат в edx:eax
+			mul	ebx; // СЂРµР·СѓР»СЊС‚Р°С‚ РІ edx:eax
 			mov	ebx, carryAsm;
 			add	eax, ebx;
 			jnc	exitMul1;
@@ -817,7 +817,7 @@ const bigInt _simpleMul(const bigInt& A, const bigInt& B)
 		}
 #endif
 
-		// ассемблерная вставка для GCC
+		// Р°СЃСЃРµРјР±Р»РµСЂРЅР°СЏ РІСЃС‚Р°РІРєР° РґР»СЏ GCC
 #ifdef forGCC
 		asm volatile (
 			"mull	%%ebx;"
@@ -855,13 +855,13 @@ const bigInt _simpleMul(const bigInt& A, const bigInt& B)
 			digit Ri = res[i + j];
 			digit normAsm = 0;
 
-			// ассемблерная вставка для VisualStudio
+			// Р°СЃСЃРµРјР±Р»РµСЂРЅР°СЏ РІСЃС‚Р°РІРєР° РґР»СЏ VisualStudio
 #ifdef forVS
 			__asm
 			{
 				mov	eax, Aj;
 				mov	ebx, Bi;
-				mul	ebx; // результат в edx:eax
+				mul	ebx; // СЂРµР·СѓР»СЊС‚Р°С‚ РІ edx:eax
 				mov	ebx, Ri;
 				add	eax, ebx;
 				jnc	addCarry;
@@ -877,7 +877,7 @@ const bigInt _simpleMul(const bigInt& A, const bigInt& B)
 			}
 #endif
 
-			// ассемблерная вставка для GCC
+			// Р°СЃСЃРµРјР±Р»РµСЂРЅР°СЏ РІСЃС‚Р°РІРєР° РґР»СЏ GCC
 #ifdef forGCC
 			asm volatile (
 				"mull	%%ebx;"
@@ -906,7 +906,7 @@ const bigInt _simpleMul(const bigInt& A, const bigInt& B)
 }
 
 const bigInt _divividing(const bigInt& A, const bigInt& B, bigInt &remainder)
-{// возвращает целую часть от деления, в remainder - остаток
+{// РІРѕР·РІСЂР°С‰Р°РµС‚ С†РµР»СѓСЋ С‡Р°СЃС‚СЊ РѕС‚ РґРµР»РµРЅРёСЏ, РІ remainder - РѕСЃС‚Р°С‚РѕРє
 	remainder = A;
 	remainder._sign = 0;
 
@@ -958,7 +958,7 @@ const bigInt _divividing(const bigInt& A, const bigInt& B, bigInt &remainder)
 		return res;
 	}
 	return _divColumn(A, B, remainder);
-	return _divBinSearch(A, B, remainder); // 2 варианта деления, но _divColumn должен работать быстрее
+	return _divBinSearch(A, B, remainder); // 2 РІР°СЂРёР°РЅС‚Р° РґРµР»РµРЅРёСЏ, РЅРѕ _divColumn РґРѕР»Р¶РµРЅ СЂР°Р±РѕС‚Р°С‚СЊ Р±С‹СЃС‚СЂРµРµ
 }
 
 const bigInt _divColumn(const bigInt& A, const bigInt& B, bigInt &remainder)
@@ -969,12 +969,12 @@ const bigInt _divColumn(const bigInt& A, const bigInt& B, bigInt &remainder)
 	bigInt divider = B;
 	divider._sign = 0;
 
-	// деление большого числа на большое число "столбиком"
+	// РґРµР»РµРЅРёРµ Р±РѕР»СЊС€РѕРіРѕ С‡РёСЃР»Р° РЅР° Р±РѕР»СЊС€РѕРµ С‡РёСЃР»Рѕ "СЃС‚РѕР»Р±РёРєРѕРј"
 	bigInt res;
 	res._setSize(A._size - B._size + 1);
 
 	unsLongDigit scale = BASE;
-	scale += 1; // "Масштабирующий множитель" для того, чтобы divider[-1] >= BASE/2
+	scale += 1; // "РњР°СЃС€С‚Р°Р±РёСЂСѓСЋС‰РёР№ РјРЅРѕР¶РёС‚РµР»СЊ" РґР»СЏ С‚РѕРіРѕ, С‡С‚РѕР±С‹ divider[-1] >= BASE/2
 	scale /= (2 * (divider[-1]));
 	if (scale > 1)
 	{
@@ -982,7 +982,7 @@ const bigInt _divColumn(const bigInt& A, const bigInt& B, bigInt &remainder)
 		divider *= scale;
 	}
 
-	// вставка ведущего 0 в remainder
+	// РІСЃС‚Р°РІРєР° РІРµРґСѓС‰РµРіРѕ 0 РІ remainder
 	bigInt tmp;
 	tmp._setSize(remainder._size + 1);
 	for (int i = 0; i < remainder._size; i++)
@@ -991,7 +991,7 @@ const bigInt _divColumn(const bigInt& A, const bigInt& B, bigInt &remainder)
 
 	for (int vi = A._size - B._size, uj = A._size; vi >= 0; vi--, uj--)
 	{
-		// сделано пошагово для избежания ошибок переполнения
+		// СЃРґРµР»Р°РЅРѕ РїРѕС€Р°РіРѕРІРѕ РґР»СЏ РёР·Р±РµР¶Р°РЅРёСЏ РѕС€РёР±РѕРє РїРµСЂРµРїРѕР»РЅРµРЅРёСЏ
 		unsLongDigit qGuess = remainder[uj];
 		qGuess *= BASE;
 		qGuess += remainder[uj - 1];
@@ -1000,7 +1000,7 @@ const bigInt _divColumn(const bigInt& A, const bigInt& B, bigInt &remainder)
 		qGuess /= divider[-1];
 
 		while (r < BASE)
-		{// при больших BASE этот цикл выполняется довольно долго
+		{// РїСЂРё Р±РѕР»СЊС€РёС… BASE СЌС‚РѕС‚ С†РёРєР» РІС‹РїРѕР»РЅСЏРµС‚СЃСЏ РґРѕРІРѕР»СЊРЅРѕ РґРѕР»РіРѕ
 			unsLongDigit temp2 = divider[-2] * qGuess;
 			unsLongDigit temp1 = r*BASE;
 			temp1 += remainder[-2];
@@ -1015,7 +1015,7 @@ const bigInt _divColumn(const bigInt& A, const bigInt& B, bigInt &remainder)
 		qMulDivider *= divider;
 		//qMulDivider._shiftLeft(vi); //qMulDivider = qGuess * divider * BASE^vi
 
-		// отнять от remainder qMulDivider
+		// РѕС‚РЅСЏС‚СЊ РѕС‚ remainder qMulDivider
 		bigInt remTmp = remainder;
 		remTmp._shiftLeft(-vi);
 		remTmp._delLeadZeros();
@@ -1042,7 +1042,7 @@ const bigInt _divColumn(const bigInt& A, const bigInt& B, bigInt &remainder)
 		divider /= scale;
 	}
 	while (remainder >= divider)
-	{// почему-то при делении нацело возникают моменты, что остаток оказался больше делителя
+	{// РїРѕС‡РµРјСѓ-С‚Рѕ РїСЂРё РґРµР»РµРЅРёРё РЅР°С†РµР»Рѕ РІРѕР·РЅРёРєР°СЋС‚ РјРѕРјРµРЅС‚С‹, С‡С‚Рѕ РѕСЃС‚Р°С‚РѕРє РѕРєР°Р·Р°Р»СЃСЏ Р±РѕР»СЊС€Рµ РґРµР»РёС‚РµР»СЏ
 		remainder -= divider;
 		res++;
 	}
@@ -1067,16 +1067,16 @@ const bigInt _divBinSearch(const bigInt& A, const bigInt& B, bigInt &remainder)
 	for (int i = A._size - B._size + 1; i; i--)
 	{
 		longDigit qGuessMax = BASE;
-		qGuessMax += 1; // для того, чтобы qGuessMin могло быть равно BASE - 1
+		qGuessMax += 1; // РґР»СЏ С‚РѕРіРѕ, С‡С‚РѕР±С‹ qGuessMin РјРѕРіР»Рѕ Р±С‹С‚СЊ СЂР°РІРЅРѕ BASE - 1
 		longDigit qGuessMin = 0;
 		longDigit qGuess = qGuessMax;
 
-		// цикл - подбор бинарным поиском числа qGuess
+		// С†РёРєР» - РїРѕРґР±РѕСЂ Р±РёРЅР°СЂРЅС‹Рј РїРѕРёСЃРєРѕРј С‡РёСЃР»Р° qGuess
 		while (qGuessMax - qGuessMin > 1)
 		{
 			qGuess = (qGuessMax + qGuessMin) / 2;
 
-			// получаем tmp = qGuess * divider * BASE^i;
+			// РїРѕР»СѓС‡Р°РµРј tmp = qGuess * divider * BASE^i;
 			bigInt tmp = divider * qGuess;
 			tmp._shiftLeft(i - 1);
 			bigInt tmp2 = remainder;
@@ -1091,7 +1091,7 @@ const bigInt _divBinSearch(const bigInt& A, const bigInt& B, bigInt &remainder)
 		bigInt remTmp = remainder;
 		remTmp._shiftLeft(-i + 1);
 		remTmp._delLeadZeros();
-		remTmp = _simpleSum(remTmp, -qMulDivider); // нельзя использовать _delLeadZeoros, чтобы не уменьшилось количество знаков
+		remTmp = _simpleSum(remTmp, -qMulDivider); // РЅРµР»СЊР·СЏ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ _delLeadZeoros, С‡С‚РѕР±С‹ РЅРµ СѓРјРµРЅСЊС€РёР»РѕСЃСЊ РєРѕР»РёС‡РµСЃС‚РІРѕ Р·РЅР°РєРѕРІ
 		for (int j = 0; j < remTmp._size; j++)
 			remainder[i - 1 + j] = remTmp[j];
 

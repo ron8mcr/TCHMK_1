@@ -1,4 +1,4 @@
-#include <stdio.h>
+ï»¿#include <stdio.h>
 #include <stdlib.h>
 #include "bigInt.h"
 #include <iostream>
@@ -73,7 +73,7 @@ void noArguments()
 		if (err == DIVISION_BY_ZERO)
 			cout << "Division by zero" << endl;
 	}
-	// íåïîíÿòíî, ïî êàêîìó ìîäóëþ âîçâîäèòü â ñòåïåíü, òàê ÷òî ëó÷øå çàêîììåíòèðîâàòü ýòî
+	// Ð½ÐµÐ¿Ð¾Ð½ÑÑ‚Ð½Ð¾, Ð¿Ð¾ ÐºÐ°ÐºÐ¾Ð¼Ñƒ Ð¼Ð¾Ð´ÑƒÐ»ÑŽ Ð²Ð¾Ð·Ð²Ð¾Ð´Ð¸Ñ‚ÑŒ Ð² ÑÑ‚ÐµÐ¿ÐµÐ½ÑŒ, Ñ‚Ð°Ðº Ñ‡Ñ‚Ð¾ Ð»ÑƒÑ‡ÑˆÐµ Ð·Ð°ÐºÐ¾Ð¼Ð¼ÐµÐ½Ñ‚Ð¸Ñ€Ð¾Ð²Ð°Ñ‚ÑŒ ÑÑ‚Ð¾
 	//cout << "A ^ B = " << a << " ^ " << b << " = " << (a ^ b) << endl;
 
 	/*if (!a.getFromTextFile("input.txt"))

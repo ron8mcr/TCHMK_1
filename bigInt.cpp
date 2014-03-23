@@ -12,47 +12,29 @@ bigInt::bigInt()
 
 bigInt::bigInt(const char* string)
 {// конструктор из строки, в которой записано число в 10-ричной форме
+	if (!string)
+		return;
 
-	// numberInBase10 - число в 10-ричной системе счисления
-	bigInt numberInBase10;
-	numberInBase10._size = strlen(string);
-	numberInBase10._sign = 0;
+	int strSize = strlen(string);
+	int strSign = 0;
 	if (string[0] == '-')
 	{
-		numberInBase10._size--;
-		numberInBase10._sign = 1;
+		strSize--;
+		strSign = 1;
 	}
-	numberInBase10._digits = new digit[numberInBase10._size];
-	for (int i = 0; i < numberInBase10._size; i++)
+	bigInt res;
+	for (int i = 0; i < strSize; i++)
 	{
-		if (string[numberInBase10._size - 1 - i + numberInBase10._sign] > '9' || string[numberInBase10._size - 1 - i + numberInBase10._sign] < '0')
+		char si = string[i + strSign];
+		if (si > '9' || si < '0')
 		{
-			numberInBase10._digits = NULL;
-			numberInBase10._size = 0;
+			res._setSize(1);
 			break;
 		}
-		numberInBase10[i] = string[numberInBase10._size - 1 - i + numberInBase10._sign] - '0';
+		res = res * 10 + (si - '0');
 	}
-	numberInBase10._delLeadZeros();
-	_sign = numberInBase10._sign;
-	numberInBase10._sign = 0;
-
-	// перевод из 10-ричной системы счисления в BASE-ричную
-
-	bigInt res;
-	res = 0;
-
-	bigInt pow10 = 1;
-	bigInt b10 = 10;
-	for (int i = 0; i < numberInBase10._size; i++)
-	{
-		// pow10 = 10^i
-		bigInt digitI = numberInBase10[i];
-		res = res + digitI * pow10;
-		pow10 = pow10 * b10;
-	}
+	res._sign = strSign;
 	res._delLeadZeros();
-	res._sign = _sign;
 	this->_size = 0;
 	*this = res;
 }
@@ -64,7 +46,8 @@ bigInt::bigInt(const bigInt &rhv)
 
 bigInt::bigInt(long long int value)
 {
-	_digits = new digit[20];
+	// при BASE = 2 8-байтовое число может состоять максимум из 64 знаков
+	_digits = new digit[64];
 	_size = 0;
 	_sign = 0;
 	long long int carry = value;
@@ -84,52 +67,57 @@ bigInt::bigInt(long long int value)
 bigInt::~bigInt()
 {
 	if (_size) delete[] _digits;
-	_digits = NULL;
 }
 
 
 char* bigInt::getString()
 {// возвращает строку, в которой записано число в 10-ричной системе счисления
 
-	bigInt numberInBase10; // здесь будет храниться число в 10-ричной СС для вывода
-	numberInBase10._setSize(MAX_10_LEN);  // здесь запряталось ограничение на максимальную размерность 10-ричного числа
-	numberInBase10._size = 1;
 	bigInt thisNumber = *this;
 	thisNumber._sign = 0;
-
+	char* string = new char[MAX_10_LEN];	// здесь закралось ограничение
+											// на максимальную длину числа в 10-чной записи
+	int i = 0;
 	while (thisNumber > (long long int) 0)
 	{
 		bigInt remainder;
 		thisNumber = _divividing(thisNumber, 10, remainder);
-		// раскомментровать следующие строки, если BASE < 10		
+		// раскомментровать следующие строки, если BASE < 10	
+		// тогда string[i] = strI + '0';
 		/*int pwd = 1;
+		int strI = 0;
 		for (int i = 0; i < remainder._size; i++)
 		{
-			numberInBase10[numberInBase10._size - 1] += remainder[i] * pwd;
+			strI += remainder[i] * pwd;
 			pwd *= BASE;
 		}*/
 
 		// когда BASE > 10 - остаток от деления на 10 - одна цифра
-		numberInBase10[numberInBase10._size - 1] = remainder[0];
-		numberInBase10._size++;
-		if (numberInBase10._size > MAX_10_LEN) // как-то получше надо обрабатывать такую ситуацию
+		string[i] = remainder[0] + '0';
+		i++;
+		if (i >= MAX_10_LEN) // как-то получше надо обрабатывать такую ситуацию
 			break;
 	}
-	numberInBase10._delLeadZeros();
-
-	// формирование строки
-	char* string = new char[numberInBase10._size + numberInBase10._sign + 1];
-	int i = 0;
-	if (numberInBase10._sign)
+	if (i == 0)
 	{
+		string[i] = '0';
 		i++;
-		string[0] = '-';
 	}
-	for (; i < numberInBase10._size + numberInBase10._sign; i++)
+	if (this->_sign)
 	{
-		string[i] = numberInBase10[numberInBase10._size - 1 - i + numberInBase10._sign] + '0';
+		string[i] = '-';
+		i++;
 	}
-	string[numberInBase10._size + numberInBase10._sign] = '\0';
+	string[i] = '\0';
+
+	// переворачиваем строку
+	for (int j = 0; j < i / 2; j++)
+	{
+		char t = string[j];
+		string[j] = string[i - j - 1];
+		string[i - j - 1] = t;
+	}
+
 	return string;
 }
 
@@ -342,46 +330,34 @@ bigInt bigInt::operator--(int)
 }
 
 
-int bigInt::operator>(const bigInt& B)
+bool bigInt::operator>(const bigInt& B)
 {
-	if (this->_cmp(B) > 0)
-		return 1;
-	return 0;
+	return this->_cmp(B) > 0;
 }
 
-int bigInt::operator>=(const bigInt& B)
+bool bigInt::operator>=(const bigInt& B)
 {
-	if (this->_cmp(B) >= 0)
-		return 1;
-	return 0;
+	return this->_cmp(B) >= 0;
 }
 
-int bigInt::operator<(const bigInt& B)
+bool bigInt::operator<(const bigInt& B)
 {
-	if (this->_cmp(B) < 0)
-		return 1;
-	return 0;
+	return this->_cmp(B) < 0;
 }
 
-int bigInt::operator<=(const bigInt& B)
+bool bigInt::operator<=(const bigInt& B)
 {
-	if (this->_cmp(B) <= 0)
-		return 1;
-	return 0;
+	return this->_cmp(B) <= 0;
 }
 
-int bigInt::operator==(const bigInt& B)
+bool bigInt::operator==(const bigInt& B)
 {
-	if (this->_cmp(B) == 0)
-		return 1;
-	return 0;
+	return this->_cmp(B) == 0;
 }
 
-int bigInt::operator!=(const bigInt& B)
+bool bigInt::operator!=(const bigInt& B)
 {
-	if (this->_cmp(B) != 0)
-		return 1;
-	return 0;
+	return this->_cmp(B) != 0;
 }
 
 
@@ -954,7 +930,6 @@ const bigInt _divividing(const bigInt& A, const bigInt& B, bigInt &remainder)
 		remainder._delLeadZeros();
 		res._sign = (!A._sign && B._sign) || (A._sign && !B._sign);
 		res._delLeadZeros();
-		remainder._viewNumber();
 		return res;
 	}
 	return _divColumn(A, B, remainder);

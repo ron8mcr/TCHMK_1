@@ -54,13 +54,12 @@ public:
 	bigInt operator--();
 	bigInt operator--(int);
 	
-	// TODO: bool вместо int
-	int operator>(const bigInt& B);
-	int operator>=(const bigInt& B);
-	int operator<(const bigInt& B);
-	int operator<=(const bigInt& B);
-	int operator==(const bigInt& B);
-	int operator!=(const bigInt& B);
+	bool operator>(const bigInt& B);
+	bool operator>=(const bigInt& B);
+	bool operator<(const bigInt& B);
+	bool operator<=(const bigInt& B);
+	bool operator==(const bigInt& B);
+	bool operator!=(const bigInt& B);
 
 	friend std::ostream& operator<<(std::ostream &out, bigInt A);
 	friend std::istream& operator>>(std::istream &is, bigInt &A);

@@ -1,6 +1,7 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS // special for Visual studio
 #include "bigInt.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 bigInt::bigInt()
@@ -22,17 +23,43 @@ bigInt::bigInt(const char* string)
 		strSize--;
 		strSign = 1;
 	}
-	bigInt res;
-	for (int i = 0; i < strSize; i++)
+	char* strCpy = new char[strlen(string) + 1]; // потому что string - const char
+	strcpy(strCpy, string);
+
+	// проверка строки на наличие нечисловых символов
+	char* pStr = strCpy + strSign;
+	while (*pStr)
 	{
-		char si = string[i + strSign];
-		if (si > '9' || si < '0')
+		if (*pStr < '0' || *pStr > '9')
 		{
-			res._setSize(1);
-			break;
+			delete[] strCpy;
+			_setSize(1);
+			return;
 		}
-		res = res * 10 + (si - '0');
+		pStr++;
 	}
+
+	pStr = strCpy + strSign;
+	bigInt b1000000000 = 1000000000; // чтобы в цикле не вызывать каждый раз конструктор
+	bigInt res;
+	// обработка сразу по 9 символов
+	for (int i = 0; i < strSize / 9; i++)
+	{
+		char splStr[10];
+		memcpy(splStr, pStr, 9);
+		splStr[9] = '\0';
+		pStr += 9;
+		digit digitI = atol(splStr);
+		res = res * b1000000000 + digitI;
+	}
+
+	// обработка оставшихся символов
+	while (*pStr)
+	{
+		res = res * 10 + (*pStr - '0');
+		pStr++;
+	}
+	delete[] strCpy;
 	res._sign = strSign;
 	res._delLeadZeros();
 	this->_size = 0;
@@ -46,8 +73,7 @@ bigInt::bigInt(const bigInt &rhv)
 
 bigInt::bigInt(long long int value)
 {
-	// при BASE = 2 8-байтовое число может состоять максимум из 64 знаков
-	_digits = new digit[64];
+	_digits = new digit[3];
 	_size = 0;
 	_sign = 0;
 	long long int carry = value;
@@ -75,48 +101,41 @@ char* bigInt::getString()
 
 	bigInt thisNumber = *this;
 	thisNumber._sign = 0;
-	char* string = new char[MAX_10_LEN];	// здесь закралось ограничение
-											// на максимальную длину числа в 10-чной записи
-	int i = 0;
-	while (thisNumber > (long long int) 0)
+	char* strBuffer = new char[MAX_10_LEN]();	// здесь закралось ограничение
+												// на максимальную длину числа в 10-чной записи
+	char* pString = &(strBuffer[MAX_10_LEN - 1]); // указатель на текущую позицию для записи числа
+	bigInt b1000000000 = 1000000000;
+	char splStr[10];
+	do
 	{
-		bigInt remainder;
-		thisNumber = _divividing(thisNumber, 10, remainder);
-		// раскомментровать следующие строки, если BASE < 10	
-		// тогда string[i] = strI + '0';
-		/*int pwd = 1;
-		int strI = 0;
-		for (int i = 0; i < remainder._size; i++)
-		{
-			strI += remainder[i] * pwd;
-			pwd *= BASE;
-		}*/
-
-		// когда BASE > 10 - остаток от деления на 10 - одна цифра
-		string[i] = remainder[0] + '0';
-		i++;
-		if (i >= MAX_10_LEN) // как-то получше надо обрабатывать такую ситуацию
+		pString -= 9;
+		if (pString < strBuffer)
+		{// в случае, если число сильно длинное, выведется только младшая часть числа
+			pString += 9;
 			break;
-	}
-	if (i == 0)
-	{
-		string[i] = '0';
-		i++;
-	}
+		}
+
+		bigInt remainder;
+		thisNumber = _divividing(thisNumber, b1000000000, remainder);
+		sprintf(splStr, "%09u", remainder[0]);
+		memcpy(pString, splStr, 9);
+		
+	} while (thisNumber > (long long int) 0);
+
+	// удаление ведущих нулей
+	while (*pString == '0' && *(pString + 1))
+		pString++;
+	
+	
 	if (this->_sign)
 	{
-		string[i] = '-';
-		i++;
+		pString--;
+		*pString = '-';
 	}
-	string[i] = '\0';
 
-	// переворачиваем строку
-	for (int j = 0; j < i / 2; j++)
-	{
-		char t = string[j];
-		string[j] = string[i - j - 1];
-		string[i - j - 1] = t;
-	}
+	char* string = new char[strlen(pString) + 1]();
+	strcpy(string, pString);
+	delete[] strBuffer;
 
 	return string;
 }
@@ -442,6 +461,12 @@ digit bigInt::_normalize(longDigit d, digit &norm)
 void bigInt::_copy(const bigInt &rhv)
 {
 	_size = rhv._size;
+	if (!_size)
+	{
+		_digits = NULL;
+		_sign = rhv._sign;
+		return;
+	}
 	_digits = new digit[_size];
 	_sign = rhv._sign;
 	memcpy(_digits, rhv._digits, _size*sizeof(digit));

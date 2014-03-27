@@ -234,7 +234,7 @@ bigInt& bigInt::operator=(const longDigit value)
 }
 
 
-bigInt bigInt::operator+(const bigInt& right)
+bigInt bigInt::operator+(const bigInt& right) const
 {
 	bigInt tmp = _simpleSum(*this, right);
 	tmp._delLeadZeros();
@@ -248,33 +248,32 @@ bigInt bigInt::operator-() const
 	return res;
 }
 
-bigInt bigInt::operator-(const bigInt& right)
+bigInt bigInt::operator-(const bigInt& right) const
 {
 	return bigInt(*this + (-right));
 }
 
-bigInt bigInt::operator*(const bigInt& right)
+bigInt bigInt::operator*(const bigInt& right) const
 {
 	return bigInt(_simpleMul(*this, right));
 }
 
-bigInt bigInt::operator/(const bigInt& right)
+bigInt bigInt::operator/(const bigInt& right) const
 {
 	bigInt rem;
 	return _divividing(*this, right, rem);
 }
 
-bigInt bigInt::operator%(const bigInt& right)
+bigInt bigInt::operator%(const bigInt& right) const
 {
 	bigInt rem;
 	_divividing(*this, right, rem);
 	return rem;
 }
 
-bigInt bigInt::operator^(const bigInt& right)
-{// возведение в степень right
+bigInt bigInt::operator^(const bigInt& right) const
+{// возведение *this в степень right
 	// да, этот оператор обычно имеет другой смысл
-	// и здесь, видимо, имелось ввиду возведение в степень по модулю, но по какому?
 	bigInt res = 1;
 	bigInt base = *this;
 	for (bigInt i = right; i > (long long int) 0; i--)
@@ -417,8 +416,8 @@ char* bigInt::_viewNumber()
 }
 
 void bigInt::_setSize(int size)
-{// изменяет размер числа, при этом обнуляя его. Необходимо, например, для произведения,
-	// когда, в общем случае, размрность результата равна сумме размерностей сомножителей
+{	// изменяет размер числа, при этом обнуляя его. Необходимо, например, для произведения,
+	// когда, в общем случае, размерность результата равна сумме размерностей сомножителей
 	if (_size)
 		delete[] _digits;
 	_size = size;
@@ -438,24 +437,6 @@ digit bigInt::operator[](int i) const
 	if (i < 0)
 		return _digits[_size + i];
 	return this->_digits[i];
-}
-
-digit bigInt::_normalize(longDigit d, digit &norm)
-{// нормализует число d, возвращает перенос. Используется, когда BASE != 2^32
-	digit carry = 0;
-	if (d < 0)
-	{
-		while (d < 0)
-		{
-			d = d + BASE;
-			carry++;
-		}
-		norm = d;
-		return carry;
-	}
-	carry = d / BASE;
-	norm = d % BASE;
-	return carry;
 }
 
 void bigInt::_copy(const bigInt &rhv)
@@ -566,11 +547,12 @@ const bigInt _simpleSum(const bigInt& left, const bigInt& right)
 						// когда размерность B значительно меньше размерности A
 						// и есть только небольшое количество переносов из младших разрядов в старшие
 		A._size--;
-		//digit carry = 0;
 		digit carryAsm = 0;
 
+		// прибавляем число меньшей размерности к числу большей размерности
 		for (int i = 0; i < B._size; i++)
 		{
+			// вот что, по сути, делают ассемблерные вставки
 			/*longDigit tmp = A[i];
 			tmp += B[i];
 			tmp += carry;
@@ -617,12 +599,9 @@ const bigInt _simpleSum(const bigInt& left, const bigInt& right)
 				"exitSum1:;" : "=a" (normAsm), "=c" (carryAsm) : "a" (Ai), "b" (Bi), "d" (carryAsm));
 #endif
 
-			/*if (normAsm != norm)
-				printf("\n********************* normAsm != norm in _simpleSum_1 ******************\n");
-			if (carryAsm != carry)
-				printf("\n********************* carryAsm != carry in _simpleSum_1 ******************\n");*/
 			res[i] = normAsm;
 		}
+		// добавляем необходимое количество переносов
 		// условие (carry != 0) для выхода из цикла и есть та самая небольшая оптимизация
 		for (int i = B._size; (i < A._size) && carryAsm; i++)
 		{
@@ -660,10 +639,6 @@ const bigInt _simpleSum(const bigInt& left, const bigInt& right)
 				"incl	%%ecx;"
 				"exitSum2:;" : "=a" (normAsm), "=c" (carryAsm) : "a" (Ai), "d" (carryAsm));
 #endif
-			/*if (normAsm != norm)
-				printf("\n********************* normAsm != norm in _simpleSum_2 ******************\n");
-			if (carryAsm != carry)
-				printf("\n********************* carryAsm != carry in _simpleSum_2 ******************\n");*/
 			res[i] = normAsm;
 		}
 		res[A._size] = carryAsm;
@@ -673,7 +648,6 @@ const bigInt _simpleSum(const bigInt& left, const bigInt& right)
 	else
 	{// отнимаем одно от другого и выставляем нужный знак
 		bigInt res = A;
-		//digit carry = 0;
 		digit carryAsm = 0;
 		for (int i = 0; i < B._size; i++)
 		{
@@ -723,10 +697,6 @@ const bigInt _simpleSum(const bigInt& left, const bigInt& right)
 				"incl	%%ecx;"
 				"exitSum3:;" : "=a" (normAsm), "=c" (carryAsm) : "a" (Ai), "b" (Bi), "d" (carryAsm)); 
 #endif
-			/*if (normAsm != norm)
-				printf("\n********************* normAsm != norm in _simpleSum_3 ******************\n");
-			if (carryAsm != carry)
-				printf("\n********************* carryAsm != carry in _simpleSum_3 ******************\n");*/
 			res[i] = normAsm;
 		}
 
@@ -766,10 +736,6 @@ const bigInt _simpleSum(const bigInt& left, const bigInt& right)
 				"incl	%%ecx;"
 				"exitSum4:;" : "=a" (normAsm), "=c" (carryAsm) : "a" (Ai), "d" (carryAsm));
 #endif
-			/*if (normAsm != norm)
-				printf("\n********************* normAsm != norm in _simpleSum_4 ******************\n");
-			if (carryAsm != carry)
-				printf("\n********************* carryAsm != carry in _simpleSum_4 ******************\n");*/
 			res[i] = normAsm;
 		}
 		res._sign = A._sign;
@@ -827,11 +793,6 @@ const bigInt _simpleMul(const bigInt& A, const bigInt& B)
 			"incl	%%edx;"
 			"exitMul1:;" : "=a" (normAsm), "=d" (carryAsm) : "a" (Ai), "b" (B0), "c" (carryAsm));
 #endif
-
-		/*if (normAsm != norm)
-			printf("\n********************* normAsm != norm in _simpleMul_1 ******************\n");
-		if (carryAsm != carry)
-			printf("\n********************* carryAsm != carry in _simpleMul_1 ******************\n");*/
 		res[i] = normAsm;
 
 	}
@@ -839,7 +800,6 @@ const bigInt _simpleMul(const bigInt& A, const bigInt& B)
 
 	for (int i = 1; i < B._size; i++)
 	{
-		//carry = 0;
 		carryAsm = 0;
 		for (int j = 0; j < A._size; j++)
 		{
@@ -891,11 +851,6 @@ const bigInt _simpleMul(const bigInt& A, const bigInt& B)
 				"incl	%%edx;"
 				"exitMul2:;" : "=a" (normAsm), "=d" (carryAsm) : "a" (Aj), "b" (Bi), "c" (carryAsm), "D"(Ri));
 #endif
-			/*if (normAsm != norm)
-				printf("\n********************* normAsm != norm in _simpleMul_2 ******************\n");
-			if (carryAsm != carry)
-				printf("\n********************* carryAsm != carry in _simpleMul_2 ******************\n");*/
-
 			res[i + j] = normAsm;
 		}
 		res[i + A._size] = carryAsm;
@@ -1013,9 +968,8 @@ const bigInt _divColumn(const bigInt& A, const bigInt& B, bigInt &remainder)
 		}
 		bigInt qMulDivider = qGuess;
 		qMulDivider *= divider;
-		//qMulDivider._shiftLeft(vi); //qMulDivider = qGuess * divider * BASE^vi
 
-		// отнять от remainder qMulDivider
+		// отнять от remainder qMulDivider, точнее только от необходимых разрядов
 		bigInt remTmp = remainder;
 		remTmp._shiftLeft(-vi);
 		remTmp._delLeadZeros();
@@ -1024,9 +978,7 @@ const bigInt _divColumn(const bigInt& A, const bigInt& B, bigInt &remainder)
 			qGuess--;
 			qMulDivider = qGuess;
 			qMulDivider *= divider;
-			//qMulDivider._shiftLeft(vi);
 		}
-		//qMulDivider._shiftLeft(vi);
 		remTmp = _simpleSum(remTmp, -qMulDivider);
 		for (int i = 0; i < remTmp._size; i++)
 			remainder[vi + i] = remTmp[i];
@@ -1054,7 +1006,8 @@ const bigInt _divColumn(const bigInt& A, const bigInt& B, bigInt &remainder)
 }
 
 const bigInt _divBinSearch(const bigInt& A, const bigInt& B, bigInt &remainder)
-{
+{	// деление "столбиком"
+	// подбор очередного разряда частного бинарным поиском
 	remainder = A;
 	remainder._sign = 0;
 
@@ -1066,8 +1019,7 @@ const bigInt _divBinSearch(const bigInt& A, const bigInt& B, bigInt &remainder)
 
 	for (int i = A._size - B._size + 1; i; i--)
 	{
-		longDigit qGuessMax = BASE;
-		qGuessMax += 1; // для того, чтобы qGuessMin могло быть равно BASE - 1
+		longDigit qGuessMax = BASE; // для того, чтобы qGuessMin могло быть равно BASE - 1
 		longDigit qGuessMin = 0;
 		longDigit qGuess = qGuessMax;
 
@@ -1087,11 +1039,15 @@ const bigInt _divBinSearch(const bigInt& A, const bigInt& B, bigInt &remainder)
 			else
 				qGuessMin = qGuess;
 		}
+		// remainder -= divider * qGuessMin, точнее вычитание только из необходимых разрядов
 		bigInt qMulDivider = divider * qGuessMin;
 		bigInt remTmp = remainder;
 		remTmp._shiftLeft(-i + 1);
 		remTmp._delLeadZeros();
-		remTmp = _simpleSum(remTmp, -qMulDivider); // нельзя использовать _delLeadZeoros, чтобы не уменьшилось количество знаков
+
+		remTmp = _simpleSum(remTmp, -qMulDivider); // нельзя использовать "-", так как в нём удаляются ведущие 0.
+
+		// записываем изменившиеся разряды в remainder
 		for (int j = 0; j < remTmp._size; j++)
 			remainder[i - 1 + j] = remTmp[j];
 
@@ -1102,7 +1058,19 @@ const bigInt _divBinSearch(const bigInt& A, const bigInt& B, bigInt &remainder)
 	remainder._sign = (!A._sign && B._sign) || (A._sign && !B._sign);
 	remainder._delLeadZeros();
 	res._delLeadZeros();
-	res._viewNumber();
 
 	return res;
+}
+
+const bigInt pow(const bigInt& A, const bigInt& B, bigInt& modulus)
+{// возведение A в степень B по модулю modulus
+	if (modulus == (longDigit)0)
+		return A ^ B;
+
+	bigInt base = A % modulus;
+	bigInt res = 1;
+	for (bigInt i = B; i > (long long int) 0; i--)
+		res = (res * base) % modulus;
+	return res;
+	
 }

@@ -4,8 +4,6 @@ typedef unsigned int digit;
 typedef long long int longDigit;
 typedef unsigned long long int unsLongDigit;
 
-// при небольших изменениях, в программе могут проводиться вычисления по любому модулю (в любой СС)
-// поэтому не во всех местах код оптимизирован под BASE = 2^32 (например, сложение через циклы, а не кусками памяти)
 #define BASE 4294967296 // 2^32
 
 //#define forVS // если компилируется в Visual Studio
@@ -35,13 +33,13 @@ public:
 	bigInt& operator=(const bigInt& rhv);
 	bigInt& operator=(const longDigit value);
 
-	bigInt operator+(const bigInt& right);
+	bigInt operator+(const bigInt& right) const;
 	bigInt operator-() const;
-	bigInt operator-(const bigInt& right);
-	bigInt operator*(const bigInt& right);
-	bigInt operator/(const bigInt& right);
-	bigInt operator%(const bigInt& right);
-	bigInt operator^(const bigInt& right);
+	bigInt operator-(const bigInt& right) const;
+	bigInt operator*(const bigInt& right) const;
+	bigInt operator/(const bigInt& right) const;
+	bigInt operator%(const bigInt& right) const;
+	bigInt operator^(const bigInt& right) const;
 
 	bigInt operator+=(const bigInt& right);
 	bigInt operator-=(const bigInt& right);
@@ -66,7 +64,10 @@ public:
 
 
 private:
-	int _size; // можно было бы взять unsigned long long int, но у оператора new есть ограничение на максимальный размер массива 0x7fffffff байт. Так что это, по сути, и ограничивает максимальную длинну числа
+	// можно было бы взять unsigned long long int для _size
+	// но у оператора new есть ограничение на максимальный размер массива 0x7fffffff байт. 
+	// Так что это, по сути, и ограничивает максимальную длинну числа
+	int _size;
 	digit* _digits;
 	int _sign;
 
@@ -74,7 +75,6 @@ private:
 	void _setSize(int size);
 	digit & operator[](int i);
 	digit operator[](int i) const;
-	digit _normalize(longDigit d, digit &norm);
 	void _copy(const bigInt &rhv);
 	void _delLeadZeros();
 	longDigit _cmp(const bigInt& B);
@@ -91,3 +91,5 @@ const bigInt _simpleMul(const bigInt& A, const bigInt& B);
 const bigInt _divividing(const bigInt& A, const bigInt& B, bigInt &remainder);
 const bigInt _divColumn(const bigInt& A, const bigInt& B, bigInt &remainder);
 const bigInt _divBinSearch(const bigInt& A, const bigInt& B, bigInt &remainder);
+
+const bigInt pow(const bigInt& A, const bigInt& B, bigInt& modulus);

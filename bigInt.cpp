@@ -316,34 +316,26 @@ bigInt bigInt::operator%=(const bigInt& right)
 bigInt bigInt::operator++()
 {
 	bigInt oldVal = *this;
-	bigInt a;
-	a = 1;
-	*this = *this + a;
+	*this = *this + 1;
 	return oldVal;
 }
 
 bigInt bigInt::operator++(int)
 {
-	bigInt a;
-	a = 1;
-	*this = *this + a;
+	*this = *this + 1;
 	return *this;
 }
 
 bigInt bigInt::operator--()
 {
 	bigInt oldVal = *this;
-	bigInt a;
-	a = 1;
-	*this = *this - a;
+	*this = *this - 1;
 	return oldVal;
 }
 
 bigInt bigInt::operator--(int)
 {
-	bigInt a;
-	a = 1;
-	*this = *this - a;
+	*this = *this - 1;
 	return *this;
 }
 

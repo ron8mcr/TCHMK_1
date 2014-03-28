@@ -21,25 +21,25 @@ int main(int argc, char* argv[])
 	char* fileA = argv[1];
 	char operation = argv[2][0];
 	char* fileB = argv[3];
-	char* fileMod = NULL;
-	char* fileRes = NULL;
+	char* fileRes = argv[4];
 	bool binary = false;
+	char* fileMod = NULL;
 
-	if (operation == '^')
+	if (argc == 6)
 	{
-		fileMod = argv[4];
-		fileRes = argv[5];
-		if (argc == 7)
+		if (!strcmp(argv[5], "-b"))
 			binary = true;
-	}
-	else
-	{
-		fileRes = argv[4];
-		if (argc == 6)
-			binary = true;
+		else
+			fileMod = argv[5];
 	}
 
-	bigInt A, B, modulus;
+	if (argc == 7)
+	{
+		binary = true;
+		fileMod = argv[6];
+	}
+
+	bigInt A, B, modulus = (longDigit) 0;
 	if (!getFromFiles(fileA, fileB, fileMod, operation, binary, A, B, modulus))
 		return -1;
 
@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
 void noArguments()
 {
 	cout << "Launched without parameters." << endl;
-	cout << "Perform all kind of oparations with entered numbers." << endl;
+	cout << "Perform all kind of operations with entered numbers." << endl;
 	
 	bigInt a, b;
 	cout << "Enter A: ";
@@ -116,7 +116,7 @@ void noArguments()
 void printUsage()
 {
 	cout << "Usage: " << endl;
-	cout << "TCHMK_1 <A filelame> <operation> <B filelame> [<modulus filename>] <result filename> [-b]" << endl << endl;
+	cout << "TCHMK_1 <A filelame> <operation> <B filelame> <result filename> [-b] [<modulus filename>]" << endl << endl;
 	cout << "Parameters:" << endl;
 	cout << "  operations:" << endl;
 	cout << "    \"+\" - addition" << endl;
@@ -126,7 +126,6 @@ void printUsage()
 	cout << "    \"%\" - taking the remainder" << endl;
 	cout << "    \"^\" - involution (pow)" << endl;
 	cout << "  -b for operations with binary files" << endl;
-	cout << "  [<modulus filename>] using when operation is ^ (pow)" << endl;
 }
 
 bool checkArguments(int argc, char* argv[])
@@ -158,45 +157,7 @@ bool checkArguments(int argc, char* argv[])
 		return false;
 	}
 
-	if (argv[2][0] == '^')
-	{
-		if (argc < 6)
-		{
-			cout << "Not enough arguments passed." << endl;
-			printUsage();
-			return false;
-		}
-		if (argc == 6)
-		{
-			if (!strcmp(argv[5], "-b"))
-			{
-				cout << "No modulus passed. " << endl;
-				printUsage();
-				return false;
-			}
-		}
-		if (argc == 7)
-		{
-			if (strcmp(argv[6], "-b"))
-			{
-				cout << "Wrong parameter passed." << endl;
-				printUsage();
-				return false;
-			}
-		}
-	}
-	else
-	{
-		if (argc == 6)
-		{
-			if (strcmp(argv[5], "-b"))
-			{
-				cout << "Wrong parameter passed." << endl;
-				printUsage();
-				return false;
-			}
-		}
-	}
+	
 	return true;
 }
 
@@ -214,7 +175,7 @@ bool getFromFiles(char* fileA, char* fileB, char* fileMod, char operation, bool 
 			cout << "Can't get number from " << fileB << endl;
 			return false;
 		}
-		if (operation == '^')
+		if (fileMod)
 		{
 			if (!modulus.getFromBinFile(fileMod))
 			{
@@ -235,7 +196,7 @@ bool getFromFiles(char* fileA, char* fileB, char* fileMod, char operation, bool 
 			cout << "Can't get number from " << fileB << endl;
 			return false;
 		}
-		if (operation == '^')
+		if (fileMod)
 		{
 			if (!modulus.getFromTextFile(fileMod))
 			{
@@ -250,46 +211,108 @@ bool getFromFiles(char* fileA, char* fileB, char* fileMod, char operation, bool 
 
 bool process(bigInt A, bigInt B, bigInt modulus, char operation, bigInt& res)
 {
-	switch (operation)
+	if (modulus > (longDigit)0)
+	{// такие 2 очень похожих куска из-за того, что например, деление и взятие остатка по модулю 
+		switch (operation)
+		{
+		case '+':
+			A %= modulus;
+			B %= modulus;
+			res = A + B;
+			res %= modulus;
+			return true;
+
+		case '-':
+			A %= modulus;
+			B %= modulus;
+			res = A - B;
+			res %= modulus;
+			return true;
+
+		case '*':
+			A %= modulus;
+			B %= modulus;
+			res = A * B;
+			res %= modulus;
+			return true;
+
+		case '/':
+			// Нельзя сначала выполнить
+			// A %= modulus;
+			// B %= modulus; 
+			// например, (3 / 2 mod 2)
+			if (B == (longDigit)0)
+			{
+				cout << "Division by zero" << endl;
+				return false;
+			}
+			res = A / B;
+			res %= modulus;
+			return true;
+
+		case '%':
+			if (B == (longDigit)0)
+			{
+				cout << "Division by zero" << endl;
+				return false;
+			}
+			res = A % B;
+			res %= modulus;
+			return true;
+
+		case '^':
+			res = pow(A, B, modulus);
+			return true;
+
+		default:
+			cout << "Wrong operation." << endl;
+			printUsage();
+			return false;
+		}
+	}
+	else
 	{
-	case '+':
-		res = A + B;
-		return true;
-	
-	case '-':
-		res = A - B;
-		return true;
-	
-	case '*':
-		res = A * B;
-		return true;
-	
-	case '/':
-		if (B == (longDigit)0)
+		switch (operation)
 		{
-			cout << "Division by zero" << endl;
+		case '+':
+			res = A + B;
+			return true;
+
+		case '-':
+			res = A - B;
+			return true;
+
+		case '*':
+			res = A * B;
+			return true;
+
+		case '/':
+			if (B == (longDigit)0)
+			{
+				cout << "Division by zero" << endl;
+				return false;
+			}
+			res = A / B;
+			return true;
+
+		case '%':
+			if (B == (longDigit)0)
+			{
+				cout << "Division by zero" << endl;
+				return false;
+			}
+			res = A % B;
+			return true;
+
+		case '^':
+			res = A ^ B;
+			return true;
+
+		default:
+			cout << "Wrong operation." << endl;
+			printUsage();
 			return false;
 		}
-		res = A / B;
-		return true;
-	
-	case '%':
-		if (B == (longDigit)0)
-		{
-			cout << "Division by zero" << endl;
-			return false;
-		}
-		res = A % B;
-		return true;
-	
-	case '^':
-		res = pow(A, B, modulus);
-		return true;
-	
-	default:
-		cout << "Wrong operation." << endl;
-		printUsage();
-		return false;
 	}
 }
 

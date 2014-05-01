@@ -1,4 +1,2 @@
-mingw32-make
-pause
-TCHMK_1
+mingw32-make windows
 pause

@@ -1,2 +1,5 @@
-all: TCHMK_1.cpp bigInt.cpp
-	g++ TCHMK_1.cpp bigInt.cpp -o TCHMK_1.exe -lm
+all: main.cpp bigInt.cpp
+	g++ main.cpp bigInt.cpp -o TCHMK_1 -lm
+	
+windows: main.cpp bigInt.cpp
+	g++ main.cpp bigInt.cpp -o TCHMK_1 -lm
